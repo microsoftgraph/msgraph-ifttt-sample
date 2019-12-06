@@ -1,0 +1,523 @@
+<!doctype html>
+<html>
+<head>
+    <title>Microsoft Teams Service for IFTTT</title>
+    
+    <script src="https://unpkg.com/@microsoft/mgt/dist/bundle/mgt-loader.js"></script>
+
+    <style>
+        @font-face {
+            font-family: "SegoeMDL2";
+            src: url(./static/fonts/SegMDL2.ttf) format("truetype");
+        }
+
+        body { 
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .wrapper {
+            margin: auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 48px;
+        }
+
+        .header {
+            font-size: 32px;
+            background-color: #000000;
+            text-align: center;
+            height: 88px;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            padding: 0 48px;
+            justify-content: space-between;
+        }
+
+        mgt-login {
+            --background-color: #FFFFFF;
+        }
+
+        .info-panel {
+            margin: 0 0 32px 0;
+        }
+
+        .items-panel-header {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .items-panel {
+            margin: 24px 0;
+            padding-inline-start: 0;
+            display: flex;
+            flex-flow: wrap;
+            justify-content: center;
+        }
+
+        .ifttt-item {
+            width: 300px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 10px;
+            margin: 10px;
+            padding: 32px;
+            background-color: #6264a7;
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+
+        .ifttt-item > div{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ifttt-item--disabled {
+            opacity: 0.5;
+            transform: none !important;
+        }
+
+        .ifttt-item__title {
+            font-size: 1.125em;
+            line-height: 1.125;
+        }
+
+        .ifttt-item__description {
+            opacity: 0.8;
+            font-size: 1em;
+            margin-top: 1em;
+        }
+
+        .ifttt-item__label {
+            margin-top: 16px;
+        }
+
+        .ifttt-item__input {
+            height: 32px;
+            margin-top: 4px;
+            border-radius: 10px;
+            border: 0;
+            padding-inline-start: 8px;
+        }
+
+        .ifttt-item__button {
+            height: 32px;
+            margin-top: 16px;
+            border-radius: 16px;
+            border: 0;
+            padding: 0.5em 1.5em;
+            background: #FFFFFF;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 48px;
+            font-size: 1.25em;
+            background-color: #000000;
+        }
+
+        .footer a:link {
+            color: #FFFFFF;
+            text-decoration: none;
+        }
+
+        .footer a:link:hover {
+            text-decoration: underline;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: #00000055;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal__content {
+            background: #FFFFFF;
+            border-radius: 10px;
+            width: 520px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal__content > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .modal__title {
+            font-size: 1.125em;
+            font-weight: 600;
+        }
+
+        .modal__description {
+            font-size: 1em;
+            margin-top: 16px
+        }
+
+        .modal__close {
+            font-family: 'SegoeMDL2';
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span>Microsoft Teams Service for IFTTT</span>
+        <mgt-login></mgt-login>
+    </div>
+
+    <div class="wrapper">
+
+        <div class="info-panel">
+            Sign in and click on any Action or Trigger to test the service manually.
+        </div>
+
+        <div class="items-panel-header">Actions</div>
+        <div class="items-panel">
+            <li class="ifttt-item ifttt-item--create_team">
+                <div>
+                    <span class="ifttt-item__title">Create new team</span>
+                    <span class="ifttt-item__description">This action will create a new team in Microsoft Teams.</span>
+                </div>
+                <div>
+                    <span class="ifttt-item__label">Team name</span>
+                    <input class="ifttt-item__input ifttt-item__input--team_name" type="text" />
+                    <button class="ifttt-item__button" onclick="createTeam()">Create team</button>
+                </div>
+            </li>
+            <li class="ifttt-item ifttt-item--create_channel">
+                <div>
+                    <span class="ifttt-item__title">Create new channel</span>
+                    <span class="ifttt-item__description">This action will create a new channel in Microsoft Teams.</span>
+                </div>
+                <div>
+                    <span class="ifttt-item__label">Team name</span>
+                    <input class="ifttt-item__input ifttt-item__input--team_name" type="text" />
+                    <span class="ifttt-item__label">Channel name</span>
+                    <input class="ifttt-item__input ifttt-item__input--channel_name" type="text" />
+                    <button class="ifttt-item__button" onclick="createChannel()">Create channel</button>
+                </div>
+            </li>
+            <li class="ifttt-item ifttt-item--create_message">
+                <div>
+                    <span class="ifttt-item__title">Create new message</span>
+                    <span class="ifttt-item__description">This action will create a new message in Microsoft Teams.</span>
+                </div>
+                <div>
+                    <span class="ifttt-item__label">Team name</span>
+                    <input class="ifttt-item__input ifttt-item__input--team_name" type="text" />
+                    <span class="ifttt-item__label">Channel name</span>
+                    <input class="ifttt-item__input ifttt-item__input--channel_name" type="text" />
+                    <span class="ifttt-item__label">Message</span>
+                    <input class="ifttt-item__input ifttt-item__input--message" type="text" />
+                    <button class="ifttt-item__button" onclick="createMessage()">Create message</button>
+                </div>
+            </li>
+        </div>
+
+        <div class="items-panel-header">Triggers</div>
+        <ul class="items-panel">
+            <li class="ifttt-item ifttt-item--event_created">
+                <div>
+                    <span class="ifttt-item__title">Event created</span>
+                    <span class="ifttt-item__description">This trigger fires when a new event is added to the calendar.</span>
+                </div>
+                <div>
+                    <button class="ifttt-item__button" onclick="triggerEventCreated()">Execute trigger</button>
+                </div>
+            </li>
+            <li class="ifttt-item ifttt-item--message_created ifttt-item--disabled">
+                <div>
+                    <span class="ifttt-item__title">Message created</span>
+                    <span class="ifttt-item__description">This trigger fires when a new message is created in Microsoft Teams.</span>
+                </div>
+                <div>
+                    <button class="ifttt-item__button" disabled onclick="triggerMessageCreated()">Execute trigger</button>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <a href="https://ifttt.com/create/if">
+            Get started at IFTTT.com
+        </a>
+    </div>
+
+    <template id="modal-template">
+        <div class="modal" onclick="lightDismiss(this, event)">
+            <div class="modal__content">
+                <div>
+                    <span class="modal__title">title</span>
+                    <span class="modal__close"></span>
+                </div>
+                <span class="modal__description">description</span>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        mgt.Providers.globalProvider = new mgt.MsalProvider({
+            clientId: '<%- process.env.CLIENT_ID %>'
+        });
+
+        async function getAccessToken(...scopes) {
+            
+            try {
+                if (scopes) {
+                    return await mgt.Providers.globalProvider.getAccessTokenForScopes(scopes);
+                }
+                else {
+                    return await mgt.Providers.globalProvider.getAccessToken();
+                }
+            }
+            catch(e) {
+                return null;
+            }
+        }
+
+        async function createTeam() {
+
+            let buttonElem = document.querySelector('.ifttt-item--create_team .ifttt-item__button');
+            buttonElem.disabled = true;
+
+            try {
+                let teamNameElem = document.querySelector('.ifttt-item--create_team .ifttt-item__input--team_name');
+                let teamName = teamNameElem.value;
+                if (!teamName) {
+                    showModal('Create team failed', 'Please provide a Team name and try again.');
+                    return;
+                }
+
+                let token = await getAccessToken('Group.ReadWrite.All');
+                if (!token) {
+                    showModal('Create team failed', 'Please sign in and try again.');
+                    return;
+                }
+
+                // Send a post to the create_team endpoint with the required data
+                let iftttResponse = await fetch('/ifttt/v1/actions/create_team', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        actionFields: {
+                            team_name: teamName
+                        }
+                    })
+                });
+
+                if (iftttResponse.ok) {
+                    teamNameElem.value = null;
+                    showModal('Create team success', 'The new team was successfully created.');
+                }
+                else {
+                    showModal('Create team failed', 'Please check your configuration and try again.');
+                }
+            }
+            finally {
+                buttonElem.disabled = false;
+            }
+        }
+
+        async function createChannel() {
+
+            let buttonElem = document.querySelector('.ifttt-item--create_channel .ifttt-item__button');
+            buttonElem.disabled = true;
+
+            try {
+                let teamNameElem = document.querySelector('.ifttt-item--create_channel .ifttt-item__input--team_name');
+                let teamName = teamNameElem.value;
+                if (!teamName) {
+                    showModal('Create channel failed', 'Please provide a Team name and try again.');
+                    return;
+                }
+
+                let channelNameElem = document.querySelector('.ifttt-item--create_channel .ifttt-item__input--channel_name');
+                let channelName = channelNameElem.value;
+                if (!channelName) {
+                    showModal('Create channel failed', 'Please provide a Channel name and try again.');
+                    return;
+                }
+
+                let token = await getAccessToken();
+                if (!token) {
+                    showModal('Create channel failed', 'Please sign in and try again.');
+                    return;
+                }
+
+                // Send a post to the create_channel endpoint with the required data
+                let iftttResponse = await fetch('/ifttt/v1/actions/create_channel', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        actionFields: {
+                            team_name: teamName,
+                            channel_name: channelName
+                        }
+                    })
+                });
+
+                if (iftttResponse.ok) {
+                    teamNameElem.value = null;
+                    channelNameElem.value = null;
+                    showModal('Create channel success', 'The new channel was successfully created.');
+                }
+                else {
+                    showModal('Create channel failed', 'Please check your configuration and try again.');
+                }
+            }
+            finally {
+                buttonElem.disabled = false;
+            }
+        }
+
+        async function createMessage() {
+            
+            let buttonElem = document.querySelector('.ifttt-item--create_message .ifttt-item__button');
+            buttonElem.disabled = true;
+
+            try {
+
+                let teamNameElem = document.querySelector('.ifttt-item--create_message .ifttt-item__input--team_name');
+                let teamName = teamNameElem.value;
+                if (!teamName) {
+                    showModal('Create message failed', 'Please provide a Team name and try again.');
+                    return;
+                }
+
+                let channelNameElem = document.querySelector('.ifttt-item--create_message .ifttt-item__input--channel_name');
+                let channelName = channelNameElem.value;
+                if (!channelName) {
+                    showModal('Create message failed', 'Please provide a Channel name and try again.');
+                    return;
+                }
+
+                let messageElem = document.querySelector('.ifttt-item--create_message .ifttt-item__input--message');
+                let message = messageElem.value;
+                if (!message) {
+                    showModal('Create message failed', 'Please provide a message and try again.');
+                    return;
+                }
+
+                let token = await getAccessToken();
+                if (!token) {
+                    showModal('Create message failed', 'Please sign in and try again.');
+                    return;
+                }
+
+                // Send a post to the create_message endpoint with the required data
+                let iftttResponse = await fetch('/ifttt/v1/actions/create_message', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        actionFields: {
+                            team_name: teamName,
+                            channel_name: channelName,
+                            message: message
+                        }
+                    })
+                });
+
+                if (iftttResponse.ok) {
+                    teamNameElem.value = null;
+                    channelNameElem.value = null;
+                    messageElem.value = null;
+                    showModal('Create message succeeded', 'The new message was successfully created.');
+                }
+                else {
+                    showModal('Create message failed', 'Please check your configuration and try again.');
+                }
+            }
+            finally {
+                buttonElem.disabled = false;
+            }
+        }
+
+        async function triggerEventCreated() {
+
+            let buttonElem = document.querySelector('.ifttt-item--event_created .ifttt-item__button');
+            buttonElem.disabled = true;
+
+            try {
+                let token = await getAccessToken();
+                if (!token) {
+                    showModal('Event created failed', 'Please sign in and try again.');
+                    return;
+                }
+
+                let iftttResponse = await fetch('/ifttt/v1/triggers/event_created', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        limit: 1
+                    })
+                });
+
+                if (iftttResponse.ok) {
+                    showModal('Event created succeeded', 'The trigger was successfully executed.');
+                }
+                else {
+                    showModal('Event created failed', 'Please check your configuration and try again.');
+                }
+            }
+            finally {
+                buttonElem.disabled = false;
+            }
+        }
+
+        async function triggerMessageCreated() {
+
+        }
+
+        function showModal(title, description) {
+
+            let template = document.querySelector('#modal-template');
+            let modal = document.importNode(template.content, true);
+
+            modal.querySelector('.modal__title').textContent = title;
+            modal.querySelector('.modal__description').textContent = description;
+
+            modal.querySelector('.modal__close').addEventListener('click', (e) => {
+                document.querySelector('.modal').remove();
+            });
+
+            document.body.appendChild(modal);
+        }
+
+        function lightDismiss(target, e) {
+            if (e.srcElement === target) {
+                target.remove();
+            }
+        }
+    </script>
+</body>
+</html>
