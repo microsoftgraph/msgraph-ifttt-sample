@@ -15,7 +15,7 @@
     "express": "^4.17.1",
     "guid-typescript": "^1.0.9",
     "isomorphic-fetch": "^2.2.1",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "path": "^0.12.7",
     "typescript": "3.4.3"
   },
